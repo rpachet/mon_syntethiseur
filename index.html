@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎹 Mon Synthétiseur</title>
+  <meta name="description" content="Synthétiseur modulaire éducatif pour enfants — crée et explore les sons directement dans ton navigateur !" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- webaudio-controls : potards et sliders style matériel audio (chargé depuis CDN) -->
+  <script src="https://g200kg.github.io/webaudio-controls/webaudio-controls.js" defer></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header>
+    <h1>🎹 Mon Synthétiseur</h1>
+    <div class="header-controls">
+      <button id="learn-toggle" class="btn">🎓 Mode Apprendre</button>
+    </div>
+  </header>
+
+  <!-- ── LEARN PANEL ────────────────────────────────────────── -->
+  <div id="learn-panel" class="hidden">
+    <label>🎵 Mélodie :</label>
+    <select id="melody-select"></select>
+    <span style="color:#a78bfa;font-size:0.85rem">Clique sur la touche qui brille en vert !</span>
+  </div>
+
+  <!-- ── MAIN ───────────────────────────────────────────────── -->
+  <main>
+
+    <!-- Palette -->
+    <section id="palette-section">
+      <h2>🧩 Modules</h2>
+      <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px;">
+        Glisse un module dans le rack →
+      </p>
+      <div id="palette"></div>
+    </section>
+
+    <!-- Rack -->
+    <section id="rack-section">
+      <h2>🎛️ Mon Rack (glisse & dépose des modules ici)</h2>
+      <div id="rack"></div>
+      <p style="font-size:0.72rem;color:var(--text-dim);margin-top:8px;">
+        💡 Astuce : l'ordre des modules change le son ! Essaie de changer leur position.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- ── KEYBOARD ───────────────────────────────────────────── -->
+  <section id="keyboard-section">
+    <h2>🎹 Clavier (clique ou utilise les touches du clavier : A Z E R T Y…)</h2>
+    <div id="keyboard"></div>
+  </section>
+
+</div><!-- #app -->
+
+<script type="module">
+  import { initRack     } from './js/rack.js';
+  import { initKeyboard } from './js/keyboard.js';
+  import { initLearnMode, checkLearnNote } from './js/learn.js';
+  import { audioEngine  } from './js/audio-engine.js';
+
+  // Patch keyboard to also check learn mode
+  const origNoteOn = audioEngine.noteOn.bind(audioEngine);
+  audioEngine.noteOn = function(freq) {
+    origNoteOn(freq);
+    checkLearnNote(freq);
+  };
+
+  initRack();
+  initKeyboard();
+  initLearnMode();
+
+  // Position black keys correctly after keyboard renders
+  positionBlackKeys();
+  window.addEventListener('resize', positionBlackKeys);
+
+  function positionBlackKeys() {
+    const keyboard = document.getElementById('keyboard');
+    const whites = Array.from(keyboard.querySelectorAll('.key.white'));
+    const blacks = Array.from(keyboard.querySelectorAll('.key.black'));
+    const keyboardRect = keyboard.getBoundingClientRect();
+    const whiteWidth = 100 / whites.length; // percent
+
+    // For each octave, black key positions relative to white keys
+    // Pattern per octave: C#(after C), D#(after D), F#(after F), G#(after G), A#(after A)
+    // White key indices in one octave: C=0 D=1 E=2 F=3 G=4 A=5 B=6
+    // Black key after white indices:   0,  1,  3,  4,  5
+    const blackAfterWhite = [0, 1, 3, 4, 5]; // within octave whites
+
+    let blackIdx = 0;
+    for (let oct = 0; oct < 2; oct++) {
+      for (const afterIdx of blackAfterWhite) {
+        const globalWhiteIdx = oct * 7 + afterIdx;
+        const leftPercent = (globalWhiteIdx + 1) * whiteWidth - whiteWidth * 0.3;
+        if (blacks[blackIdx]) {
+          blacks[blackIdx].style.left = leftPercent + '%';
+        }
+        blackIdx++;
+      }
+    }
+  }
+</script>
+</body>
+</html>

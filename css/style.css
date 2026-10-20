@@ -1,0 +1,523 @@
+/* ============================================================
+   style.css — Synth-web : Synthétiseur modulaire pour enfants
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --bg:        #0f0f1a;
+  --surface:   #1a1a2e;
+  --surface2:  #16213e;
+  --border:    #2a2a4a;
+  --accent:    #7c3aed;
+  --accent2:   #db2777;
+  --text:      #e2e8f0;
+  --text-dim:  #94a3b8;
+  --white-key: #f8f5ff;
+  --black-key: #1e1b4b;
+  --radius:    14px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle animated background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(124,58,237,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 80% 70%, rgba(219,39,119,0.10) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+#app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: rgba(26,26,46,0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 1.6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ── Learn Mode Toggle ──────────────────────────────────────── */
+.btn {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#learn-toggle {
+  background: var(--surface2);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+#learn-toggle.active {
+  background: linear-gradient(135deg, #7c3aed, #db2777);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 20px rgba(124,58,237,0.5);
+}
+#learn-toggle:hover { transform: scale(1.05); }
+
+/* ── Learn Panel ────────────────────────────────────────────── */
+#learn-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.4);
+  border-radius: var(--radius);
+  padding: 10px 20px;
+  margin: 12px 20px 0;
+  font-size: 0.95rem;
+}
+#learn-panel.hidden { display: none; }
+#learn-panel label { font-weight: 700; color: #a78bfa; }
+#melody-select {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ── Main section ───────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  flex: 1;
+}
+
+/* ── Palette ─────────────────────────────────────────────────── */
+#palette-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#palette-section h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+#palette {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.palette-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: grab;
+  transition: all 0.2s;
+  user-select: none;
+}
+.palette-card:hover { border-color: #7c3aed; background: rgba(124,58,237,0.15); transform: translateX(4px); }
+.palette-card.dragging { opacity: 0.4; }
+
+.mod-icon { font-size: 1.3rem; }
+.mod-name { font-size: 0.85rem; font-weight: 700; }
+
+/* ── Rack ────────────────────────────────────────────────────── */
+#rack-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#rack-section h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+#rack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  min-height: 220px;
+  background: rgba(255,255,255,0.02);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: border-color 0.2s, background 0.2s;
+  align-content: flex-start;
+}
+#rack.drag-over { border-color: #7c3aed; background: rgba(124,58,237,0.08); }
+
+.rack-empty {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--text-dim);
+  font-weight: 700;
+  min-height: 120px;
+}
+
+/* ── Module Cards ────────────────────────────────────────────── */
+.rack-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  min-width: 160px;
+  cursor: grab;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+.rack-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+.rack-card.dragging { opacity: 0.3; }
+.rack-card.drag-over-card { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.4); }
+
+/* Color-coded top border per module type */
+.rack-card[data-type="oscillator"] { border-top: 4px solid #f59e0b; }
+.rack-card[data-type="filter"]     { border-top: 4px solid #a78bfa; }
+.rack-card[data-type="envelope"]   { border-top: 4px solid #34d399; }
+.rack-card[data-type="lfo"]        { border-top: 4px solid #38bdf8; }
+.rack-card[data-type="reverb"]     { border-top: 4px solid #f472b6; }
+.rack-card[data-type="delay"]      { border-top: 4px solid #fb923c; }
+.rack-card[data-type="volume"]     { border-top: 4px solid #facc15; }
+
+.rack-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  font-size: 0.85rem;
+  font-weight: 700;
+  position: relative;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.remove-btn:hover { background: rgba(239,68,68,0.2); color: #f87171; }
+
+.rack-card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  justify-content: center;
+}
+
+/* ── Knob Groups ─────────────────────────────────────────────── */
+.knob-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.knob-group label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.knob-value {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* webaudio-knob overrides */
+webaudio-knob {
+  --knob-color: #7c3aed;
+  cursor: pointer;
+}
+
+/* ── Wave Selector ───────────────────────────────────────────── */
+.wave-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 4px 0;
+}
+.wave-btn {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1.1rem;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Nunito', sans-serif;
+}
+.wave-btn:hover { border-color: #7c3aed; }
+.wave-btn.active {
+  background: linear-gradient(135deg, #7c3aed, #db2777);
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(124,58,237,0.5);
+}
+
+/* ── Keyboard Section ────────────────────────────────────────── */
+#keyboard-section {
+  padding: 12px 20px 20px;
+  background: rgba(26,26,46,0.6);
+  border-top: 1px solid var(--border);
+}
+#keyboard-section h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+#keyboard {
+  display: flex;
+  position: relative;
+  height: 140px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.key {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.08s;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  touch-action: none;
+}
+
+.key.white {
+  flex: 1;
+  background: linear-gradient(180deg, #f0ecff 0%, var(--white-key) 100%);
+  border: 1px solid #c4b5fd;
+  border-top: none;
+  height: 100%;
+  z-index: 1;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.1);
+  color: #4c1d95;
+}
+.key.white:hover { background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%); }
+.key.white.active {
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  color: white;
+  transform: scaleY(0.97);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+.key.white.guide {
+  background: linear-gradient(180deg, #6ee7b7 0%, #34d399 100%);
+  animation: pulse-guide 0.6s ease-in-out infinite alternate;
+  color: #064e3b;
+}
+.key.white.wrong { background: linear-gradient(180deg, #fca5a5 0%, #f87171 100%); }
+
+.key.black {
+  position: absolute;
+  width: 4.5%;
+  height: 62%;
+  background: linear-gradient(180deg, #312e81 0%, var(--black-key) 100%);
+  border: 1px solid #4338ca;
+  border-top: none;
+  z-index: 2;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.6), inset 0 -2px 3px rgba(255,255,255,0.05);
+  top: 0;
+}
+.key.black:hover { background: linear-gradient(180deg, #4338ca 0%, #3730a3 100%); }
+.key.black.active {
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  transform: scaleY(0.95);
+}
+.key.black.guide {
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+  animation: pulse-guide 0.6s ease-in-out infinite alternate;
+}
+.key.black.wrong { background: linear-gradient(180deg, #f87171 0%, #dc2626 100%); }
+
+.key-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@keyframes pulse-guide {
+  from { box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+  to   { box-shadow: 0 0 24px rgba(52,211,153,0.9); }
+}
+
+/* Position black keys correctly */
+/* Octave 1 blacks: C#, D#, F#, G#, A# */
+/* Octave 2 same pattern offset by 50% */
+/* We place them via JS in keyboard.js, but define a generic rule for the nth-child approach */
+
+/* ── Tooltip ─────────────────────────────────────────────────── */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,15,26,0.95);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  width: 220px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  line-height: 1.4;
+}
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--accent);
+}
+
+.palette-card:hover .tooltip,
+.rack-card-header:hover .tooltip { opacity: 1; }
+
+/* ── Confetti ─────────────────────────────────────────────────── */
+.confetti-particle {
+  position: fixed;
+  top: 60%;
+  z-index: 9999;
+  animation: confetti-fall linear forwards;
+  pointer-events: none;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-160px) rotate(720deg) scale(0); opacity: 0; }
+}
+
+/* ── Bravo message ───────────────────────────────────────────── */
+.bravo-msg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #7c3aed, #db2777);
+  color: white;
+  font-size: 2rem;
+  font-weight: 900;
+  padding: 24px 48px;
+  border-radius: 20px;
+  z-index: 9999;
+  box-shadow: 0 8px 40px rgba(124,58,237,0.7);
+  animation: bravo-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes bravo-pop {
+  from { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+
+/* ── Flash animation ─────────────────────────────────────────── */
+@keyframes key-flash {
+  0%   { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+.key.flash { animation: key-flash 0.2s ease-out; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  main { grid-template-columns: 1fr; }
+  #palette { flex-direction: row; flex-wrap: wrap; }
+  .palette-card { flex: 0 0 auto; }
+  #keyboard { height: 100px; }
+  #keyboard-section { padding: 8px 10px 14px; }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Keyboard shortcut hint ──────────────────────────────────── */
+.key-hint {
+  position: absolute;
+  top: 6px;
+  font-size: 0.55rem;
+  color: rgba(0,0,0,0.35);
+  font-weight: 700;
+  pointer-events: none;
+}
+.key.black .key-hint { color: rgba(255,255,255,0.25); }
