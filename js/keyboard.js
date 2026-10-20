@@ -4,8 +4,6 @@
  * via mouse/touch and computer keyboard (AZERTY-friendly).
  */
 
-import { audioEngine } from './audio-engine.js';
-
 // Note frequencies C3 to B4
 const BASE_FREQ = 130.813; // C3
 
@@ -27,11 +25,15 @@ const KEY_MAP_LOWER = {
   'l': 18, 'm': 20, '%': 22,
 };
 
+const KEY_BY_SEMITONE = Object.fromEntries(
+  Object.entries(KEY_MAP_LOWER).map(([key, semitone]) => [semitone, key])
+);
+
 function noteFreq(semitone) {
   return BASE_FREQ * Math.pow(2, semitone / 12);
 }
 
-export function initKeyboard() {
+function initKeyboard() {
   const keyboardEl = document.getElementById('keyboard');
   const keys = [];
 
@@ -47,8 +49,17 @@ export function initKeyboard() {
       key.dataset.freq = freq;
       key.dataset.semitone = semitone;
 
+      const keyHint = document.createElement('span');
+      keyHint.className = 'key-hint';
+      const computerKey = KEY_BY_SEMITONE[semitone];
+      keyHint.textContent = /^[a-z]$/.test(computerKey) ? computerKey.toUpperCase() : computerKey;
+      key.appendChild(keyHint);
+
       if (!isBlack) {
-        key.innerHTML = `<span class="key-label">${label}</span>`;
+        const noteLabel = document.createElement('span');
+        noteLabel.className = 'key-label';
+        noteLabel.textContent = label;
+        key.appendChild(noteLabel);
       }
 
       key.addEventListener('pointerdown', e => { e.preventDefault(); triggerNote(freq, key); });
@@ -82,6 +93,12 @@ export function initKeyboard() {
     const freq = noteFreq(semitone);
     const el = semiToEl[semitone];
     releaseNote(freq, el);
+  });
+
+  document.getElementById('stop-sound').addEventListener('click', () => {
+    audioEngine.stopAll();
+    pressed.clear();
+    keys.forEach(k => k.el.classList.remove('active'));
   });
 }
 

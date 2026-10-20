@@ -4,16 +4,14 @@
  * rewards correct notes with confetti.
  */
 
-import { audioEngine } from './audio-engine.js';
+const LEARN_BASE_FREQ = 130.813; // C3
 
-const BASE_FREQ = 130.813; // C3
-
-function semitone(n) { return BASE_FREQ * Math.pow(2, n / 12); }
+function semitone(n) { return LEARN_BASE_FREQ * Math.pow(2, n / 12); }
 
 const MELODIES = {
   frere_jacques: {
     label: 'Frère Jacques 🎶',
-    notes: [0,2,4,0, 0,2,4,0, 4,5,7, 4,5,7, 7,9,7,5,4,0, 7,9,7,5,4,0, 0,-5,0, 0,-5,0],
+    notes: [0,2,4,0, 0,2,4,0, 4,5,7, 4,5,7, 7,9,7,5,4,0, 7,9,7,5,4,0, 0,7,0, 0,7,0],
   },
   au_clair: {
     label: 'Au clair de la lune 🌙',
@@ -21,7 +19,35 @@ const MELODIES = {
   },
   jingle: {
     label: 'Jingle Bells 🔔',
-    notes: [4,4,4, 4,4,4, 4,7,0,2,4, 5,5,5,5, 5,4,4,4, 4,2,2,4,2,7],
+    notes: [
+      7,4,2,0,7, 7,7,7,7,7,4,4,4,4,5,4,2,5,
+      7,4,2,0,7, 7,7,7,7,7,4,4,4,4,5,4,2,0,
+      4,4,4, 4,4,4, 4,7,0,2,4, 5,5,5,5,5,4,4,4,4,2,2,4,2,7,
+    ],
+  },
+  pop_lumineuse: {
+    label: 'Le robot rigolo 🤖',
+    lyrics: 'Robot rigolo, danse dans le salon. Il tourne et saute, quelle drôle de chanson !',
+    notes: [
+      7,9,12,9,7,4,7,9, 7,9,12,14,12,9,7,4,
+      5,7,9,7,5,2,5,7, 4,7,9,12,9,7,4,0,
+    ],
+  },
+  electro_pulse: {
+    label: 'Mission fusée 🚀',
+    lyrics: 'On part dans l’espace, tout près des étoiles. La lune nous sourit, notre fusée décolle !',
+    notes: [
+      0,7,12,7, 2,9,14,9, 4,11,16,11, 7,14,19,14,
+      4,11,16,11, 2,9,14,9, 0,7,12,7, 7,14,19,14,
+    ],
+  },
+  lo_fi: {
+    label: 'La récré des copains ⚽',
+    lyrics: 'Dans la cour, on joue au ballon. On rit ensemble, quelle récréation !',
+    notes: [
+      0,4,7,9,7,4, 2,5,9,7,5,2,
+      4,7,11,9,7,4, 0,4,7,12,9,7,
+    ],
   },
 };
 
@@ -29,7 +55,7 @@ let currentMelody = null;
 let currentStep   = 0;
 let isActive      = false;
 
-export function initLearnMode() {
+function initLearnMode() {
   const toggleBtn  = document.getElementById('learn-toggle');
   const melodySelect = document.getElementById('melody-select');
   const learnPanel   = document.getElementById('learn-panel');
@@ -58,16 +84,18 @@ export function initLearnMode() {
 function startMelody(key) {
   currentMelody = MELODIES[key];
   currentStep   = 0;
+  document.getElementById('learn-lyrics').textContent = currentMelody.lyrics || '';
   highlightNext();
 }
 
 function stopMelody() {
   clearHighlights();
+  document.getElementById('learn-lyrics').textContent = '';
   currentMelody = null;
   currentStep   = 0;
 }
 
-export function checkLearnNote(freq) {
+function checkLearnNote(freq) {
   if (!isActive || !currentMelody) return;
   const expected = semitone(currentMelody.notes[currentStep]);
   if (Math.abs(freq - expected) < 1) {

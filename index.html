@@ -16,6 +16,7 @@
   <header>
     <h1>🎹 Mon Synthétiseur</h1>
     <div class="header-controls">
+      <button id="stop-sound" class="btn" title="Couper immédiatement tous les sons et effets">⏹ Stopper le son</button>
       <button id="learn-toggle" class="btn">🎓 Mode Apprendre</button>
     </div>
   </header>
@@ -25,6 +26,7 @@
     <label>🎵 Mélodie :</label>
     <select id="melody-select"></select>
     <span style="color:#a78bfa;font-size:0.85rem">Clique sur la touche qui brille en vert !</span>
+    <p id="learn-lyrics" class="learn-lyrics" aria-live="polite"></p>
   </div>
 
   <!-- ── MAIN ───────────────────────────────────────────────── -->
@@ -58,11 +60,19 @@
 
 </div><!-- #app -->
 
-<script type="module">
-  import { initRack     } from './js/rack.js';
-  import { initKeyboard } from './js/keyboard.js';
-  import { initLearnMode, checkLearnNote } from './js/learn.js';
-  import { audioEngine  } from './js/audio-engine.js';
+<script src="js/audio-engine.js"></script>
+<script src="js/modules/oscillator.js"></script>
+<script src="js/modules/filter.js"></script>
+<script src="js/modules/envelope.js"></script>
+<script src="js/modules/lfo.js"></script>
+<script src="js/modules/reverb.js"></script>
+<script src="js/modules/delay.js"></script>
+<script src="js/modules/volume.js"></script>
+<script src="js/modules/registry.js"></script>
+<script src="js/rack.js"></script>
+<script src="js/keyboard.js"></script>
+<script src="js/learn.js"></script>
+<script>
 
   // Patch keyboard to also check learn mode
   const origNoteOn = audioEngine.noteOn.bind(audioEngine);

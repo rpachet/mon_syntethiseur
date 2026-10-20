@@ -4,12 +4,9 @@
  * Calls audioEngine.setModules() whenever the rack changes.
  */
 
-import { audioEngine } from './audio-engine.js';
-import { MODULE_REGISTRY } from './modules/registry.js';
+var rackModules = []; // ordered array of SynthModule instances
 
-let rackModules = []; // ordered array of SynthModule instances
-
-export function initRack() {
+function initRack() {
   const palette = document.getElementById('palette');
   const rack    = document.getElementById('rack');
 

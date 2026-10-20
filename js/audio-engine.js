@@ -1,17 +1,17 @@
 /**
- * audio-engine.js
- * Manages the Web Audio signal chain from active rack modules to destination.
+ * audio-engine.js — moteur audio global (pas d'import/export)
+ * Compatible avec ouverture directe file:// dans le navigateur.
  */
 
-export class AudioEngine {
-  constructor() {
+var AudioEngine = (function () {
+  function AudioEngine() {
     this._ctx = null;
-    this._modules = []; // ordered list of active SynthModule instances
+    this._modules = [];
     this._masterGain = null;
-    this._activeNotes = new Map(); // note -> { osc, gain }
+    this._activeNotes = new Map();
   }
 
-  get ctx() {
+  AudioEngine.prototype._getCtx = function () {
     if (!this._ctx) {
       this._ctx = new (window.AudioContext || window.webkitAudioContext)();
       this._masterGain = this._ctx.createGain();
@@ -19,93 +19,96 @@ export class AudioEngine {
       this._masterGain.connect(this._ctx.destination);
     }
     return this._ctx;
-  }
+  };
 
-  resume() {
+  AudioEngine.prototype.resume = function () {
     if (this._ctx && this._ctx.state === 'suspended') this._ctx.resume();
-  }
+  };
 
-  setModules(modules) {
+  AudioEngine.prototype.setModules = function (modules) {
     this._modules = modules;
-  }
+  };
 
-  /** Find the oscillator module (must be first in chain) */
-  _getOscModule() {
-    return this._modules.find(m => m.type === 'oscillator');
-  }
+  AudioEngine.prototype._getOscModule = function () {
+    return this._modules.find(function (m) { return m.type === 'oscillator'; });
+  };
 
-  /** Build the audio chain from current module list and play a note */
-  noteOn(frequency) {
+  AudioEngine.prototype.noteOn = function (frequency) {
     this.resume();
     if (this._activeNotes.has(frequency)) return;
+    var ctx = this._getCtx();
 
-    const ctx = this.ctx;
-    const nodes = [];
-
-    // Always start with an oscillator
-    const osc = ctx.createOscillator();
-    const oscMod = this._getOscModule();
+    var osc = ctx.createOscillator();
+    var oscMod = this._getOscModule();
     osc.type = oscMod ? oscMod.getWaveform() : 'sine';
     osc.frequency.value = frequency;
 
-    // Envelope gain
-    const envGain = ctx.createGain();
-    const envMod = this._modules.find(m => m.type === 'envelope');
-    const attack  = envMod ? envMod.getAttack()  : 0.01;
-    const release = envMod ? envMod.getRelease() : 0.3;
+    var envGain = ctx.createGain();
+    var envMod = this._modules.find(function (m) { return m.type === 'envelope'; });
+    var attack  = envMod ? envMod.getAttack()  : 0.01;
+    var release = envMod ? envMod.getRelease() : 0.3;
 
     envGain.gain.setValueAtTime(0, ctx.currentTime);
     envGain.gain.linearRampToValueAtTime(1, ctx.currentTime + attack);
 
-    nodes.push(osc, envGain);
+    var chain = [osc, envGain];
 
-    // Chain optional modules
-    for (const mod of this._modules) {
+    // Chain optional effect modules
+    for (var i = 0; i < this._modules.length; i++) {
+      var mod = this._modules[i];
       if (mod.type === 'oscillator' || mod.type === 'envelope' || mod.type === 'volume') continue;
-      const node = mod.getAudioNode(ctx);
-      if (node) nodes.push(node);
+      var node = mod.getAudioNode(ctx);
+      if (node) chain.push(node);
     }
 
-    // Master gain / volume
-    nodes.push(this._masterGain);
+    chain.push(this._masterGain);
 
-    // Connect chain
-    for (let i = 0; i < nodes.length - 1; i++) {
-      nodes[i].connect(nodes[i + 1]);
+    for (var j = 0; j < chain.length - 1; j++) {
+      chain[j].connect(chain[j + 1]);
     }
 
     osc.start();
-    this._activeNotes.set(frequency, { osc, envGain, release, nodes });
-  }
+    this._activeNotes.set(frequency, { osc: osc, envGain: envGain, release: release });
+  };
 
-  noteOff(frequency) {
-    const note = this._activeNotes.get(frequency);
+  AudioEngine.prototype.noteOff = function (frequency) {
+    var note = this._activeNotes.get(frequency);
     if (!note) return;
-    const { osc, envGain, release } = note;
-    const ctx = this.ctx;
-    envGain.gain.cancelScheduledValues(ctx.currentTime);
-    envGain.gain.setValueAtTime(envGain.gain.value, ctx.currentTime);
-    envGain.gain.linearRampToValueAtTime(0, ctx.currentTime + release);
-    osc.stop(ctx.currentTime + release + 0.05);
+    var ctx = this._getCtx();
+    note.envGain.gain.cancelScheduledValues(ctx.currentTime);
+    note.envGain.gain.setValueAtTime(note.envGain.gain.value, ctx.currentTime);
+    note.envGain.gain.linearRampToValueAtTime(0, ctx.currentTime + note.release);
+    note.osc.stop(ctx.currentTime + note.release + 0.05);
     this._activeNotes.delete(frequency);
-  }
+  };
 
-  noteOffAll() {
-    for (const freq of this._activeNotes.keys()) this.noteOff(freq);
-  }
+  AudioEngine.prototype.noteOffAll = function () {
+    var self = this;
+    this._activeNotes.forEach(function (_, freq) { self.noteOff(freq); });
+  };
 
-  setMasterVolume(v) {
-    const volMod = this._modules.find(m => m.type === 'volume');
-    const vol = volMod ? volMod.getVolume() * v : v;
-    if (this._masterGain) this._masterGain.gain.value = vol;
-  }
+  AudioEngine.prototype.stopAll = function () {
+    var context = this._ctx;
+    if (!context) return;
 
-  updateMasterVolume() {
-    const volMod = this._modules.find(m => m.type === 'volume');
+    this._activeNotes.forEach(function (note) {
+      try { note.osc.stop(); } catch (error) {}
+    });
+    this._activeNotes.clear();
+    this._ctx = null;
+    this._masterGain = null;
+    context.close().catch(function () {});
+  };
+
+  AudioEngine.prototype.updateMasterVolume = function () {
+    var volMod = this._modules.find(function (m) { return m.type === 'volume'; });
     if (this._masterGain) {
       this._masterGain.gain.value = volMod ? volMod.getVolume() : 0.5;
     }
-  }
-}
+  };
 
-export const audioEngine = new AudioEngine();
+  return AudioEngine;
+})();
+
+// Singleton global
+var audioEngine = new AudioEngine();

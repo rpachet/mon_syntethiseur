@@ -93,6 +93,11 @@ header h1 {
   border-color: transparent;
   box-shadow: 0 0 20px rgba(124,58,237,0.5);
 }
+#stop-sound {
+  background: #b91c1c;
+  color: #fff;
+}
+#stop-sound:hover { background: #991b1b; }
 #learn-toggle:hover { transform: scale(1.05); }
 
 /* ── Learn Panel ────────────────────────────────────────────── */
@@ -109,6 +114,15 @@ header h1 {
 }
 #learn-panel.hidden { display: none; }
 #learn-panel label { font-weight: 700; color: #a78bfa; }
+.learn-lyrics {
+  flex: 1 1 100%;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
 #melody-select {
   background: var(--surface2);
   color: var(--text);
@@ -499,6 +513,10 @@ webaudio-knob {
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  header { flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 1.3rem; }
+  .header-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .btn { padding: 7px 12px; font-size: 0.8rem; }
   main { grid-template-columns: 1fr; }
   #palette { flex-direction: row; flex-wrap: wrap; }
   .palette-card { flex: 0 0 auto; }
@@ -516,8 +534,8 @@ webaudio-knob {
   position: absolute;
   top: 6px;
   font-size: 0.55rem;
-  color: rgba(0,0,0,0.35);
+  color: rgba(20,15,45,0.7);
   font-weight: 700;
   pointer-events: none;
 }
-.key.black .key-hint { color: rgba(255,255,255,0.25); }
+.key.black .key-hint { color: rgba(255,255,255,0.85); }
